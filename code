@@ -1,0 +1,59 @@
+using System;
+using System.IO;
+using System.Linq;
+
+namespace ConsoleApplication
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            //Konsol üzerinden kullanıcıya "Lütfen seçilecek sütunların numaralarını virgülle ayırarak girin:"
+            //mesajı yazılır ve kullanıcının girdiği değer "input" değişkenine atanır.
+            Console.Write("Lütfen seçilecek sütunların numaralarını virgülle ayırarak girin:");
+            var input = Console.ReadLine();
+
+            //Kullanıcının girdiği değer virgülle parçalanır ve her parçanın int tipine dönüştürülmesi için "Select" metodu kullanılır.
+            //Son olarak, diziye dönüştürülmüş değerler "columnsToSelect" değişkenine atanır.
+            var columnsToSelect = input.Split(',').Select(int.Parse).ToArray();
+
+            // CSV dosyası okumak için "StreamReader" sınıfı kullanılır ve dosya adı "input.csv"
+            // olarak belirlenir.
+            using (var reader = new StreamReader("input.csv"))
+            {
+                //Yeni CSV dosyası oluşturmak için "StreamWriter" sınıfı kullanılır ve dosya adı "output.csv"
+                //olarak belirlenir.
+                using (var writer = new StreamWriter("output.csv"))
+                {
+                    //"reader" nesnesi kullanılarak okunan dosyanın sonuna gelinip gelinmediği kontrol edilir.
+                    //Eğer dosya sonuna gelinmemişse, okunan satır "line" değişkenine atanır ve noktaları kaldırılır.
+                    while (!reader.EndOfStream)
+                    {
+                        var line = reader.ReadLine().Replace(".", string.Empty);
+                        //Okunan satır "; " ile parçalanır ve her parçanın içeriği "values" dizisine atanır.
+                        var values = line.Split(';');
+                        //"values" dizisindeki değerler arasındaki noktalar kaldırılır.
+                        var modifiedValues = values.Select(val =>
+                        {
+                            if (val.Length > 1)
+                            {
+                                val = val.Insert(2, ".");
+                            }
+                            return val;
+                        }).ToArray();
+
+                        //"columnsToSelect" dizisinde belirtilen sütunlar seçilir ve "selectedColumns"
+                        //dizisine atanır.
+                        var selectedColumns = columnsToSelect.Select(i => modifiedValues[i]);
+                        //Seçilen sütunların içerikleri "output.csv" dosyasına yazılır.
+                        writer.WriteLine(string.Join(",", selectedColumns));
+                    }
+                    //Kullanıcıya "Dosya Hazır" mesajı yazdırılır.
+                    Console.WriteLine("Lokasyon Dosyası Hazır :)");
+                }
+            }
+            //Kullanıcı bir tuşa basmayana kadar konsol ekranı açık kalır.
+            Console.ReadKey();
+        }
+    }
+}
